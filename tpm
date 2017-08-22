@@ -100,6 +100,11 @@ insert() {
     --output "${entry_path}"
 }
 
+list() {
+  cd "$STORE_DIR"
+  find -name \*.gpg | sed -re 's|^\./||g; s/\.gpg$//g'
+}
+
 ##
 # Parse input
 ##
@@ -111,6 +116,7 @@ fi
 case "${1}" in
   "show")   show   "${2}" ;;
   "insert") insert "${2}" ;;
+  "list")   list ;;
   *) abort "USAGE: tpm COMMAND ENTRY" ;;
 esac
 
