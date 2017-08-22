@@ -32,7 +32,7 @@ fi
 ##
 
 abort() {
-  echo "${1}" 1>&2
+  [ -n "${1}" ] && echo "${1}" 1>&2
   exit 1
 }
 
@@ -53,6 +53,11 @@ readpw() {
   IFS= read -r "${2}"
   [ -t 0 ] && stty echo
 }
+
+menu() {
+  list | dmenu -p tpm
+}
+
 
 ##
 # Commands
@@ -105,6 +110,30 @@ list() {
   find -name \*.gpg | sed -re 's|^\./||g; s/\.gpg$//g'
 }
 
+paste() {
+  clipboard=`xclip -selection clipboard -out`
+  pw="$(show `menu`)"
+  if [ -z "${pw}" ]; then
+    abort
+  fi
+  echo "${pw}" | tr -d '\n' | xclip -selection clipboard
+
+  case "${1}" in
+    "-p") # Pentadactyl
+      xdotool key Control_L+v Control_L+v
+      ;;
+    "") # Defaults
+      xdotool key Control_L+v
+      ;;
+    *)
+      abort "Unrecognised argument."
+      ;;
+  esac
+
+  sleep .1 # TODO: get rid of this machine-specific constant
+  echo "${clipboard}" | xclip -selection clipboard
+}
+
 ##
 # Parse input
 ##
@@ -117,6 +146,7 @@ case "${1}" in
   "show")   show   "${2}" ;;
   "insert") insert "${2}" ;;
   "list")   list ;;
+  "paste") paste "${2}" ;;
   *) abort "USAGE: tpm COMMAND ENTRY" ;;
 esac
 
